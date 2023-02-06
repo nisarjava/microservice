@@ -2,18 +2,20 @@ package com.morphy.inventory;
 
 import com.morphy.inventory.domain.Inventory;
 import com.morphy.inventory.repository.InventoryRepository;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.info.Info;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
 import java.util.List;
 
 @SpringBootApplication
+@OpenAPIDefinition(info = @Info(title = "Product API", version = "2.0", description = "Product Information"))
 public class InventoryApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(InventoryApplication.class, args);
+        org.springframework.boot.SpringApplication.run(InventoryApplication.class, args);
     }
 
     @Bean

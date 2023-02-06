@@ -7,7 +7,9 @@ import com.morphy.order.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.reactive.function.client.WebClient;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -19,6 +21,8 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private OrderRepository repository;
 
+    @Autowired
+    private WebClient webClient;
     /**
      * @param orderRequest
      */
@@ -30,8 +34,19 @@ public class OrderServiceImpl implements OrderService {
                                     .stream()
                                     .map(this::mapToOrderLineItems)
                                     .collect(Collectors.toList()));
-
-     return repository.save(order).getOrderNumber();
+      var productCodes=
+              orderRequest.getLineItems().stream().map(p->p.getCode()).collect(Collectors.toList());
+    InventoryResponse[] response= webClient.get()
+             .uri("http://localhost:9092/api/inventory",
+                     uriBuilder -> uriBuilder.queryParam("code",productCodes).build())
+            .retrieve()
+             .bodyToMono(InventoryResponse[].class)
+             .block();
+    boolean isPresent= Arrays.stream(response).allMatch(InventoryResponse::isInStock);
+     if(isPresent)
+      return repository.save(order).getOrderNumber();
+     else
+         throw new IllegalArgumentException("Product not available");
 
     }
 
